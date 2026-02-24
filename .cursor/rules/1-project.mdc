@@ -19,7 +19,7 @@ alwaysApply: true
 
 - **File size**: No source file over 200 lines; split large utilities into smaller files under appropriate directories.
 - **Function size**: No function over 50 lines; split large functions into smaller functions under appropriate files/directories.
-- **File naming**: Use dash-case and names that describe purpose or behavior (e.g. `route-handler.ts`, `if-valid-request-values.ts`).
+- **File naming**: Use dash-case and names that describe purpose or behavior (e.g. `route-handler.ts`, `if-valid-request-values.ts`). Exception: under `src/routes`, use the fixed file names defined in the Routes rule (`index.ts`, `controller.ts`, `interface.ts`, etc.).
 - **Variables, methods, components naming**: Use names that describe purpose or behavior (e.g. `getUserById`, `isValidRequest`, `OrderSummary`).
 - **Typing**: Avoid `any`; declare explicit types for all values and signatures.
 
