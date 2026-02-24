@@ -1,6 +1,6 @@
 import eslint from "@eslint/js";
-import tseslint from "typescript-eslint";
 import eslintConfigPrettier from "eslint-config-prettier/flat";
+import tseslint from "typescript-eslint";
 
 export default [
   { ignores: ["dist/", "node_modules/", "*.config.js", "*.config.mjs"] },
@@ -9,7 +9,9 @@ export default [
   {
     files: ["**/*.ts"],
     languageOptions: {
-      parserOptions: { project: "./tsconfig.json" },
+      parserOptions: {
+        project: ["./tsconfig.json", "./scripts/tsconfig.json"],
+      },
     },
     rules: {
       "max-lines": [

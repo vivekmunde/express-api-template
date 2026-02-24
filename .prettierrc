@@ -5,6 +5,7 @@
   "trailingComma": "es5",
   "printWidth": 80,
   "endOfLine": "lf",
+  "plugins": ["prettier-plugin-prisma"],
   "overrides": [
     {
       "files": "*.mdc",

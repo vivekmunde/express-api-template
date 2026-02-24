@@ -7,19 +7,23 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "build": "tsc && tsc-alias",
+    "build": "npm run prisma:generate && npm run lint && tsc && tsc-alias",
     "start": "node dist/index.js",
-    "dev": "tsx watch src/index.ts",
+    "dev": "npm run prisma:generate && tsx watch src/index.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src/",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "prisma:aggregate": "tsx scripts/aggregate-prisma-schema.ts",
+    "prisma:generate": "npm run prisma:aggregate && prisma generate",
+    "prisma:push": "prisma db push"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^6.19.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
@@ -35,6 +39,8 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "prettier": "^3.8.1",
+    "prisma": "^6.19.2",
+    "prettier-plugin-prisma": "^5.0.0",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",

@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-type TEnvVariable = "PORT" | "ALLOWED_ORIGINS";
+type TEnvVariable = "PORT" | "ALLOWED_ORIGINS" | "DATABASE_URL";
 
 /**
  * Whether the value is empty
@@ -58,4 +58,10 @@ const PORT = getEnvVariable("PORT");
  */
 const ALLOWED_ORIGINS = getEnvVariable("ALLOWED_ORIGINS").split(",");
 
-export { ALLOWED_ORIGINS, IS_DEVELOPMENT, IS_PRODUCTION, PORT };
+/**
+ * Prisma MongoDB connection URL
+ * @example "mongodb://localhost:27017/a6"
+ */
+const DATABASE_URL = getEnvVariable("DATABASE_URL");
+
+export { ALLOWED_ORIGINS, DATABASE_URL, IS_DEVELOPMENT, IS_PRODUCTION, PORT };
