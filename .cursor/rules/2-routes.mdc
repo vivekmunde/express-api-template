@@ -1,0 +1,98 @@
+---
+description: Route layout (method dirs, index, nested, params) and layer responsibilities
+globs: src/routes/**/*
+alwaysApply: false
+---
+
+# Routes
+
+## Location & layout
+
+- Define all routes under **`src/routes`**.
+- Use one directory per route (e.g. `users`, `roles`) and one per HTTP method (`get`, `post`, `put`, `patch`, `delete`) inside it, e.g. `users/get/`, `users/post/`.
+- Put an **`index.ts`** entry file in each method directory.
+- Nest by path context, e.g. `users/{id}/get/`, `users/{id}/put/`. Directory names must match the route path (e.g. `users` → `{id}` → `get`).
+- Name param segments **`{paramName}`** and match the path param exactly (e.g. `{id}` for `:id`, `{slug}` for `:slug`).
+
+## Example directory structure
+
+```
+src/routes/
+  users/
+    get/          → GET /users
+      index.ts
+      controller.ts
+      interface.ts
+      query.ts
+      transformation.ts
+      utility.ts
+      validation.ts
+    {id}/         → param :id
+      get/        → GET /users/:id
+      put/        → PUT /users/:id
+      delete/     → DELETE /users/:id
+```
+
+## File responsibilities
+
+| File                | Responsibility                                                                                                                            |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `index.ts`          | Define route path (e.g. `/users/:id`), register controller as handler; no logic.                                                          |
+| `controller.ts`     | Export route handler; orchestrate validation → query/mutation → transformation → response; no heavy business logic (minimal wiring only). |
+| `interface.ts`      | Define all public schema types for the route.                                                                                             |
+| `query.ts`          | Define Prisma get queries only; return raw Prisma result; no business logic.                                                              |
+| `mutation.ts`       | Define Prisma post/put/patch/delete mutations; return raw result; no business logic; no get queries unless required by the mutation.      |
+| `transformation.ts` | Data transformations for route response only; no other business logic.                                                                    |
+| `utility.ts`        | Route-specific utility helpers only.                                                                                                      |
+
+## Controller
+
+- Handler name: method + resource + **`Controller`** (e.g. `getUsersController`, `postUserController`, `putUserController` for `users/{id}/put/`).
+- Handler signature: exactly two arguments — **`req`** (`Request`) and **`res`** (`Response`).
+
+## Interface types
+
+- **Data types**: Prefix with method (`Get`|`Post`|`Put`|`Patch`|`Delete`), suffix with **`Request`** or **`Response`** and **`Data`** (e.g. `TGetUsersResponseData`, `TPostUserRequestData`).
+- **Error code type**: Suffix **`ResponseErrorCode`**; extend **`TErrorCode`** from `@/types/error-code` (e.g. `TGetUsersResponseErrorCode`).
+- **List responses**: Use **`TModelCollection`** from `@/types/model-collection` for consistent list schema.
+
+### Interface example
+
+```ts
+import { TErrorCode } from "@/types/error-code";
+import { TModelCollection } from "@/types/model-collection";
+
+export type TGetUser = {
+  id: string;
+  name?: string;
+  email: string;
+  roles?: { id: string; name: string }[];
+};
+
+export type TGetUsersResponseData = TModelCollection<TGetUser>;
+export type TGetUsersResponseErrorCode = TErrorCode;
+```
+
+```ts
+export type TPostUserRequestData = { email: string; roleIds: string[] };
+export type TPostUserResponseData = {
+  id: string;
+  email: string;
+  roleIds: string[];
+};
+export type TPostUserResponseErrorCode = TErrorCode | "USER_EXISTS";
+```
+
+## Query & mutation naming
+
+- **query.ts**: Prefix **`get`**, suffix **`Query`** (e.g. `getUsersQuery`, `getRoleQuery`). No mutations.
+- **mutation.ts**: Prefix **`post`**|**`put`**|**`patch`**|**`delete`**, suffix **`Mutation`** (e.g. `postUserMutation`, `putRoleMutation`).
+
+## Transformation
+
+- Prefix transformation functions with **`transform`** (e.g. `transformUsersResponse`).
+
+## Scope
+
+- Keep all route members **route-specific**.
+- Do not share code between routes; move common logic to shared modules outside **`src/routes`**.

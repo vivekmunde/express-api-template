@@ -1,0 +1,86 @@
+---
+description: Project-wide standards for tooling, code style, types, env, testing, and structure
+alwaysApply: true
+---
+
+# Project Standards
+
+## Tooling
+
+- Use **yarn** (not npm) for installs, scripts, and lockfile.
+- Use **Prisma** for all database access.
+
+## Code Style
+
+- **Single responsibility**: Each module, type, and function has one clear purpose.
+- **No duplication**: Extract shared logic into helpers or types (DRY).
+
+## Code Structure
+
+- **File size**: No source file over 200 lines; split large utilities into smaller files under appropriate directories.
+- **Function size**: No function over 50 lines; split large functions into smaller functions under appropriate files/directories.
+- **File naming**: Use dash-case and names that describe purpose or behavior (e.g. `route-handler.ts`, `if-valid-request-values.ts`).
+- **Variables, methods, components naming**: Use names that describe purpose or behavior (e.g. `getUserById`, `isValidRequest`, `OrderSummary`).
+- **Typing**: Avoid `any`; declare explicit types for all values and signatures.
+
+## Imports and Exports
+
+- **Named exports only**; no default exports. Export all public members in a single block at the end of each file.
+- Use path alias **`@/...`** for cross-module imports; use relative paths only within the same module (e.g. same directory).
+
+## Types
+
+- Prefix type aliases with **`T`** (e.g. `TUser`, `TConfig`).
+- Suffix function argument types with **`Args`** (e.g. `TCreateUserArgs`, `TLoginArgs`).
+- Define method types separately when possible: `type TTransformUsers = (users: User): TGetUser[]`.
+- Methods must have an explicit return type.
+- Inline method types only when a separate type is not practical.
+
+## Documentation
+
+- Add IDE-friendly JSDoc (or equivalent) for every function.
+- Document every argument and every member of types/argument objects.
+- Check spelling in identifiers, comments, docs, and tests.
+
+## Environment
+
+- Define all environment variables in **`src/env.ts`**. Import env from there only; do not use `process.env` elsewhere.
+- Name env constants in **UPPERCASE_SNAKE_CASE** (e.g. `DATABASE_URL`, `NODE_ENV`).
+
+## Constants
+
+- In **`src/constants`**, name constants in **UPPERCASE_SNAKE_CASE** (e.g. `MAX_PAGE_SIZE`, `DEFAULT_LOCALE`).
+
+## Testing
+
+- Maintain 100% test coverage.
+- Each test validates a single behavior; description starts with a capital letter.
+- Validate default behavior first, then custom values.
+
+## README
+
+- Developer-focused.
+- Practical usage.
+- Simple, clear English.
+- Code examples where they help; realistic examples.
+- Verify spelling throughout.
+- Rely on project formatting; avoid extra line breaks for formatting.
+- Use neutral phrasing (avoid "you").
+
+## Directory Structure
+
+| Path                     | Purpose                                                   |
+| ------------------------ | --------------------------------------------------------- |
+| `src`                    | All application source                                    |
+| `src/constants`          | Shared constants                                          |
+| `src/locales`            | Translations                                              |
+| `src/middlewares`        | Middlewares                                               |
+| `src/request-validators` | Request/search param validators used in route controllers |
+| `src/routes`             | Route definitions                                         |
+| `src/services`           | Shared DB-facing services (e.g. change-log)               |
+| `src/types`              | Shared types                                              |
+| `src/utility`            | Shared utilities                                          |
+
+## Change log
+
+- Log a change-log entry for every mutation.

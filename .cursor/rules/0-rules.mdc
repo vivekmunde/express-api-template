@@ -1,0 +1,26 @@
+---
+description: Guidelines for writing Cursor rules in this project
+alwaysApply: true
+---
+
+# Guidelines for Writing Cursor Rules
+
+Use these when creating or editing rule files in `.cursor/rules/`.
+
+## Structure
+
+- **One concern per section**; one idea per bullet. Keep sections focused.
+- Group content by context into separate sections with clear headings.
+- Prefer **tables** over long lists where a table fits (e.g. path + purpose, field + type).
+
+## Content
+
+- **No overlap** between bullets: related rules can live in the same section, but each bullet states a distinct requirement.
+- **Actionable phrasing**: Use imperatives (e.g. "Use…", "Define…", "Avoid…").
+- **Concrete clarity**: Include examples, code snippets, or tables where they make the rule unambiguous.
+- Avoid repetitiveness; state each requirement once.
+
+## Style
+
+- **Scannable**: Short bullets; **bold** key terms.
+- Write like clear internal docs: concise and to the point.
