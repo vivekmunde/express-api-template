@@ -1,4 +1,4 @@
-# a6-server
+# express-api-template
 
 Starter template for an AI-first architected API using the Express.js tech stack (Express, TypeScript).
 
