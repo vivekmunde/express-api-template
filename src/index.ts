@@ -1,4 +1,5 @@
-import { ALLOWED_ORIGINS, PORT } from "@/env";
+import { corsOptions } from "@/cors-options";
+import { PORT } from "@/env";
 import { initializeI18n } from "@/initialize-i18n";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -6,17 +7,6 @@ import express from "express";
 import i18nextHttpMiddleware from "i18next-http-middleware";
 
 const app = express();
-
-const corsOptions: cors.CorsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
-      return callback(null, true);
-    }
-    callback(new Error("NOT_ALLOWED_BY_CORS"));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-};
 
 app.use(cors(corsOptions));
 app.use(cookieParser());
