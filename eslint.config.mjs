@@ -30,6 +30,14 @@ export default [
           skipComments: true,
         },
       ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "ExportDefaultDeclaration",
+          message:
+            "Default exports are not allowed. Use named exports only (see project rules).",
+        },
+      ],
     },
   },
   eslintConfigPrettier,
