@@ -1,0 +1,36 @@
+---
+description: Rules for Prisma schema layout, naming, log models, and constraints.
+globs: schema/**/*
+alwaysApply: false
+---
+
+# Schema Rules
+
+## Location and scope
+
+- **Define all schema models** under the directory **`/schema`**.
+- **One domain per file**: Each schema file must contain exactly one main model and its **associated log model** (no other models).
+- **Co-locate log models**: Define each log model in the **same schema file** as the model it logs; do not put log models in separate files.
+
+## Design principles
+
+- **Design for scalability, maintenance, and performance**: Choose field types, relations, and naming so schemas remain clear and efficient as data and usage grow.
+
+## Indexes and constraints
+
+- **Add indexes** for every field (or combination) used in filters, sorts, or joins.
+- **Add unique constraints** where business rules require uniqueness (e.g. one active record per entity, unique natural keys).
+
+## Naming
+
+- **Prefix all enums with `E`**: Name every enum in the schema with an **`E`** prefix (e.g. `EUserRole`, `EStatus`).
+
+## Required fields
+
+- **Include timestamp and audit fields on every model**: Define **`createdAt`** (DateTime, `@default(now())`), **`createdBy`** (String, `@db.ObjectId`), **`updatedAt`** (DateTime, `@updatedAt`), and **`updatedBy`** (String?, `@db.ObjectId`) on each main model for auditing and traceability.
+
+## Log models
+
+- **Create a log model for every schema model** so every mutation can be recorded in the change log.
+- **Name log models with the `Log` suffix**: Use the exact main model name plus **`Log`** (e.g. `User` → `UserLog`, `Organization` → `OrganizationLog`).
+- **Include archive fields on every log model**: Define **`archivedAt`** (DateTime?) and **`archivedBy`** (String?, `@db.ObjectId`) on each log model for soft-delete and audit.
