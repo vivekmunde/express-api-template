@@ -10,7 +10,7 @@ alwaysApply: false
 
 - Define all routes under **`src/routes`**.
 - Use one directory per route (e.g. `users`, `roles`) and one per HTTP method (`get`, `post`, `put`, `patch`, `delete`) inside it, e.g. `users/get/`, `users/post/`.
-- Put an **`index.ts`** entry file in each method directory.
+- Each route has an **`index.ts`** file that defines all the method routes (path and controller per HTTP method).
 - Nest by path context, e.g. `users/{id}/get/`, `users/{id}/put/`. Directory names must match the route path (e.g. `users` → `{id}` → `get`).
 - Name param segments **`{paramName}`** and match the path param exactly (e.g. `{id}` for `:id`, `{slug}` for `:slug`).
 
@@ -18,26 +18,45 @@ alwaysApply: false
 
 ```
 src/routes/
+  health/
+    index.ts       → defines GET /health (and other methods if added)
+    get/
+      controller.ts
   users/
-    get/          → GET /users
-      index.ts
+    index.ts       → defines GET /users, POST /users, etc.
+    get/
       controller.ts
       interface.ts
       query.ts
-      transformation.ts
-      utility.ts
-      validation.ts
-    {id}/         → param :id
-      get/        → GET /users/:id
-      put/        → PUT /users/:id
-      delete/     → DELETE /users/:id
+      ...
+    post/
+      controller.ts
+      mutation.ts
+      ...
+    {id}/
+      get/         → GET /users/:id
+      put/         → PUT /users/:id
+      delete/      → DELETE /users/:id
+```
+
+### Route index pattern
+
+Route `index.ts` creates a Router and registers each method’s controller. Example (see `src/routes/health`):
+
+```ts
+import { Router } from "express";
+import { GET } from "./get/controller";
+
+const healthRoutes = Router();
+healthRoutes.get("/health", GET);
+export { healthRoutes };
 ```
 
 ## File responsibilities
 
 | File                | Responsibility                                                                                                                            |
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `index.ts`          | Define route path (e.g. `/users/:id`), register controller as handler; no logic.                                                          |
+| `index.ts`          | At route root: create Router, define path(s), register each method’s controller; no business logic.                                       |
 | `controller.ts`     | Export route handler; orchestrate validation → query/mutation → transformation → response; no heavy business logic (minimal wiring only). |
 | `interface.ts`      | Define all public schema types for the route.                                                                                             |
 | `query.ts`          | Define Prisma get queries only; return raw Prisma result; no business logic.                                                              |
