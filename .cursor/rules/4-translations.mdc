@@ -1,0 +1,31 @@
+---
+description: Translation and locale conventions for src/locales
+globs: src/locales/**/*
+alwaysApply: false
+---
+
+# Translations
+
+Rules in this section apply to files under **`src/locales`**.
+
+## Where to define translations
+
+- **Define all translation JSON files under the `src/locales` directory.** Use one directory per locale (e.g. `src/locales/en/`, `src/locales/fr/`).
+- **Key naming:** Use **camelCase** for keys (e.g. `loading`, `saveDraft`, `validationError`).
+- Keep keys stable across locales so code can reference the same key in every language.
+
+## Common words namespace
+
+- Use `words.json` file for common, reusable **singular words** only (e.g. `healthy`, `error`, `success`, `loading`, `save`, `cancel`).
+- Do not put full phrases or sentence-style strings in `words.json`; use other namespaces for those.
+
+## Structure of `words.json`
+
+- **Keep `words.json` strictly flat.**
+- Use a single level of key–value pairs; no nested objects.
+- Each key must map directly to a string.
+
+| Allowed                                      | Not allowed                                |
+| -------------------------------------------- | ------------------------------------------ |
+| `{ "healthy": "Healthy", "error": "Error" }` | `{ "status": { "healthy": "Healthy" } }`   |
+| `{ "success": "Success" }`                   | `{ "messages": { "success": "Success" } }` |
