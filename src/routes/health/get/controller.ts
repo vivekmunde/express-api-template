@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 /**
- * Handles GET /health. Responds with { status: {status} }.
+ * Handles GET. Responds with { status: {status} }.
  * @param req - Express request
  * @param res - Express response
  */
