@@ -3,8 +3,11 @@ import { TResponseBody } from "@/types/response-body";
 import { NextFunction, Request, Response } from "express";
 
 /**
- * Returns the request's query string per URL Standard: includes leading "?" or "".
- * Uses the URL API for consistent parsing.
+ * Returns the request's query string per URL Standard (includes leading "?" or "").
+ * Uses the URL API for consistent parsing; falls back to string slice if URL fails.
+ *
+ * @param req - Express request object
+ * @returns The search string (e.g. "?foo=bar") or undefined when no query
  */
 function getRequestSearch(req: Request): string | undefined {
   try {
@@ -18,11 +21,15 @@ function getRequestSearch(req: Request): string | undefined {
 }
 
 /**
- * Error handler middleware to handle errors and log them to the console.
- * @param err - The error object
- * @param req - The request object
- * @param res - The response object
- * @param next - The next function
+ * Error handler middleware. Logs error details (status, message, stack, URL, body, method)
+ * and sends a JSON response with statusCode and error message. On logging failure,
+ * responds with 500 and a generic message.
+ *
+ * @param err - Error with optional statusCode, message, stack, url
+ * @param req - Express request
+ * @param res - Express response
+ * @param next - Next function (unused; required for Express error middleware signature)
+ * @returns The response body with the error details
  */
 const errorHandlerMiddleware = async (
   err: { statusCode?: number; message?: string; stack?: string; url?: string },
@@ -30,7 +37,7 @@ const errorHandlerMiddleware = async (
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction
-) => {
+): Promise<Response> => {
   try {
     const statusCode = err.statusCode ?? STATUS_CODES.INTERNAL_SERVER_ERROR;
 

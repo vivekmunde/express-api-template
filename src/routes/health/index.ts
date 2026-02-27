@@ -1,3 +1,7 @@
+/**
+ * Health check routes.
+ */
+
 import { Router } from "express";
 import { getHealthController } from "./get/controller";
 
