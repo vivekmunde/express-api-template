@@ -46,5 +46,11 @@ export default [
       "no-restricted-syntax": "off",
     },
   },
+  {
+    files: ["**/*.test.ts"],
+    rules: {
+      "max-lines-per-function": "off",
+    },
+  },
   eslintConfigPrettier,
 ];
