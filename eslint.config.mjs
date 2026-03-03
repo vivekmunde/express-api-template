@@ -10,7 +10,7 @@ export default [
     files: ["**/*.ts"],
     languageOptions: {
       parserOptions: {
-        project: ["./tsconfig.json", "./scripts/tsconfig.json"],
+        project: ["./tsconfig.json", "./tsconfig.node.json"],
       },
     },
     rules: {
@@ -38,6 +38,12 @@ export default [
             "Default exports are not allowed. Use named exports only (see project rules).",
         },
       ],
+    },
+  },
+  {
+    files: ["vitest.config.ts"],
+    rules: {
+      "no-restricted-syntax": "off",
     },
   },
   eslintConfigPrettier,
