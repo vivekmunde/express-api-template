@@ -56,6 +56,7 @@ export { healthRoutes };
 
 - All route responses must use **`TResponseBody<TData, TErrorCode>`** from `@/types/response-body`. Controllers send `res.json(body)` where `body` conforms to this type (success: `data`; validation failure: `validationErrors`; error: `error`).
 - **Always define the response body explicitly**: assign it to a variable typed as **`TResponseBody<TResponseData, TResponseErrorCode>`**, then return `res.json(responseBody)`.
+- **Status codes**: Define HTTP status codes in **`@/constants/status-codes`** and use them everywhere a status is set (e.g. `res.status(STATUS_CODES.OK).json(responseBody)`). Do not use numeric literals; import and use **`STATUS_CODES`** from that file.
 
 ## File responsibilities
 
@@ -73,6 +74,7 @@ export { healthRoutes };
 
 - Handler name: method + resource + **`Controller`** (e.g. `getUsersController`, `postUserController`, `putUserController` for `users/{id}/put/`).
 - Handler signature: exactly two arguments — **`req`** (`Request`) and **`res`** (`Response`).
+- Handler **return type**: **`Promise<Response>`**. Return the result of the response send (e.g. `return res.json(responseBody)`) so the handler returns a `Promise<Response>` and matches the route-handler contract.
 - Send the response using an explicitly typed body: define **`responseBody`** as **`TResponseBody<TResponseData, TResponseErrorCode>`**, then `return res.json(responseBody)`.
 
 ### Response body example
@@ -105,13 +107,13 @@ return res.json(responseBody);
 
 - **Response data**: Prefix with method (`Get`|`Post`|`Put`|`Patch`|`Delete`), suffix with **`ResponseData`** (e.g. `TGetUsersResponseData`). This type is the first generic in **`TResponseBody<TData, TErrorCode>`**.
 - **Request data**: Prefix with method, suffix with **`RequestData`** (e.g. `TPostUserRequestData`).
-- **Error code type**: Suffix **`ResponseErrorCode`**; extend **`TErrorCode`** from `@/types/error-code` (e.g. `TGetUsersResponseErrorCode`). This type is the second generic in **`TResponseBody`**.
+- **Error code type**: Suffix **`ResponseErrorCode`**; **always extend** **`TResponseErrorCode`** from `@/types/response-error-code` (e.g. `TGetUsersResponseErrorCode = TResponseErrorCode` or `TPostUserResponseErrorCode = TResponseErrorCode | "USER_EXISTS"`). This type is the second generic in **`TResponseBody`**. Do not define a response error code type that does not extend **`TResponseErrorCode`**.
 - **List responses**: Use **`TModelCollection`** from `@/types/model-collection` for consistent list schema.
 
 ### Interface example
 
 ```ts
-import { TErrorCode } from "@/types/error-code";
+import { TResponseErrorCode } from "@/types/response-error-code";
 import { TModelCollection } from "@/types/model-collection";
 
 export type TGetUser = {
@@ -122,23 +124,36 @@ export type TGetUser = {
 };
 
 export type TGetUsersResponseData = TModelCollection<TGetUser>;
-export type TGetUsersResponseErrorCode = TErrorCode;
+export type TGetUsersResponseErrorCode = TResponseErrorCode;
 ```
 
 ```ts
+import { TResponseErrorCode } from "@/types/response-error-code";
+
 export type TPostUserRequestData = { email: string; roleIds: string[] };
 export type TPostUserResponseData = {
   id: string;
   email: string;
   roleIds: string[];
 };
-export type TPostUserResponseErrorCode = TErrorCode | "USER_EXISTS";
+export type TPostUserResponseErrorCode = TResponseErrorCode | "USER_EXISTS";
 ```
 
-## Query & mutation naming
+## Query & mutation
 
 - **query.ts**: Prefix **`get`**, suffix **`Query`** (e.g. `getUsersQuery`, `getRoleQuery`). No mutations.
 - **mutation.ts**: Prefix **`post`**|**`put`**|**`patch`**|**`delete`**, suffix **`Mutation`** (e.g. `postUserMutation`, `putRoleMutation`).
+- **No logic in query/mutation files**: **query.ts** and **mutation.ts** must only perform the Prisma call and return its result. Do not add conditionals, validation, or business rules (e.g. do not check expiry and return `undefined`; do that in the controller or a shared utility). The controller interprets the result (e.g. “no row” or “expired”) and chooses the response.
+
+## Return values
+
+- Prefer **`undefined`** over **`null`** for optional or absent values in controller response data and in transformation results.
+- In **query.ts** and **mutation.ts**, return **`undefined`** instead of **`null`** when a value is absent (e.g. no row found).
+- In **interface.ts** types, use **`undefined`** for optional or absent properties (e.g. `field?: T` or `field: T | undefined`) instead of **`null`**.
+
+## Timestamps
+
+- All timestamp values in route **interfaces** (request/response types), **responses**, and **request payloads** must be in **UTC milliseconds** (number). Define, return, and accept only UTC ms; convert to/from `Date` or other formats at the boundary (e.g. in controller or transformation) when needed.
 
 ## Transformation
 

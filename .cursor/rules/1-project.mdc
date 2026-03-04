@@ -14,6 +14,29 @@ alwaysApply: true
 
 - **Single responsibility**: Each module, type, and function has one clear purpose.
 - **No duplication**: Extract shared logic into helpers or types (DRY).
+- **Guard clauses**: Prefer **early returns** over nested `else` branches. Handle invalid or edge cases first, then continue with the main path at minimal indentation.
+
+  Prefer:
+
+  ```ts
+  if (!session) {
+    res.status(400).json({ error: "NO_SESSION" });
+    return;
+  }
+  const result = await doWork(session);
+  res.json({ data: result });
+  ```
+
+  Avoid deep nesting:
+
+  ```ts
+  if (session) {
+    const result = await doWork(session);
+    res.json({ data: result });
+  } else {
+    res.status(400).json({ error: "NO_SESSION" });
+  }
+  ```
 
 ## Code Structure
 
@@ -51,6 +74,10 @@ alwaysApply: true
 ## Constants
 
 - In **`src/constants`**, name constants in **UPPERCASE_SNAKE_CASE** (e.g. `MAX_PAGE_SIZE`, `DEFAULT_LOCALE`).
+
+## Timestamps
+
+- Use **UTC milliseconds** for all timestamp values: when storing, passing in code, and comparing. Avoid local time or ISO strings for internal representation; convert to/from UTC ms at boundaries (e.g. API, DB) as needed.
 
 ## Testing
 
