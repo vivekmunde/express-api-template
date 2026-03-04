@@ -40,6 +40,7 @@ alwaysApply: true
 
 - Add IDE-friendly JSDoc (or equivalent) for every function.
 - Document every argument and every member of types/argument objects.
+- Explain what a function or method does without giving internal implementation details.
 - Check spelling in identifiers, comments, docs, and tests.
 
 ## Environment
