@@ -1,9 +1,3 @@
-/**
- * Tests for env module. Uses dynamic imports and vi.resetModules() so each
- * test can control process.env before the module loads. Dotenv is mocked so
- * .env file does not overwrite process.env in tests.
- */
-
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("dotenv", () => ({
