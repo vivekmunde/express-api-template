@@ -8,11 +8,63 @@ alwaysApply: false
 
 ## Location & layout
 
-- Define all routes under **`src/routes`**.
-- Use one directory per route (e.g. `users`, `roles`) and one per HTTP method (`get`, `post`, `put`, `patch`, `delete`) inside it, e.g. `users/get/`, `users/post/`.
-- Each route has an **`index.ts`** file that defines all the method routes (path and controller per HTTP method).
-- Nest by path context, e.g. `users/{id}/get/`, `users/{id}/put/`. Directory names must match the route path (e.g. `users` → `{id}` → `get`).
-- Name param segments **`{paramName}`** and match the path param exactly (e.g. `{id}` for `:id`, `{slug}` for `:slug`).
+- Define every route under **`src/routes`**.
+- Use **one directory per resource** (e.g. `users`, `roles`) and **one per HTTP method** (`get`, `post`, `put`, `patch`, `delete`) under it (e.g. `users/get/`, `users/post/`).
+- Each resource has an **`index.ts`** at its root that defines path(s) and registers the controller for each method.
+- Nest by path: use subdirs for path segments (e.g. `users/{id}/get/` for `GET /users/:id`). Directory names must match the path (e.g. `users` → `{id}` → `get`).
+- Use **`{paramName}`** for dynamic segments and match the path param (e.g. `{id}` for `:id`, `{slug}` for `:slug`).
+
+## Route handlers
+
+- **Route handlers are required for all routes.** Every route must register a **route handler** (a named controller or a wrapper that invokes it). Do not use inline or anonymous functions.
+- In **`index.ts`**, import the controller from the method’s `controller.ts` and pass it to the Router as the handler (wrapped in **`publicRouteHandler`** or **`protectedRouteHandler`**; see below).
+
+### Public and protected route handlers
+
+- **Public routes** (no auth required): wrap the controller in **`publicRouteHandler`** from `@/route-handlers/public-route-handler`. The controller receives `(req, res, context)` where `context` is **`TPublicRouteRequestContext`** (e.g. optional `sessionUser`). Use for routes that work for both unauthenticated and authenticated callers.
+- **Protected routes** (auth required): wrap the controller in **`protectedRouteHandler`** from `@/route-handlers/protected-route-handler`. The handler ensures a valid session and returns 401 if missing; the controller receives `(req, res, context)` where `context` is **`TProtectedRouteRequestContext`** with required `sessionUser`. Use for routes that must be authenticated.
+- **Routes that need no request context** (e.g. health): pass the controller directly to the Router; the controller has signature `(req, res) => Promise<Response>`.
+
+**Public route example:**
+
+```ts
+import { publicRouteHandler } from "@/route-handlers/public-route-handler";
+import { Router } from "express";
+import { getAuthenticationSessionController } from "./get/controller";
+
+const authenticationRoutes = Router();
+authenticationRoutes.get(
+  "/authentication/session",
+  publicRouteHandler(getAuthenticationSessionController)
+);
+
+export { authenticationRoutes };
+```
+
+**Protected route example:**
+
+```ts
+import { protectedRouteHandler } from "@/route-handlers/protected-route-handler";
+import { Router } from "express";
+import { getProfileController } from "./get/controller";
+
+const profileRoutes = Router();
+profileRoutes.get("/profile", protectedRouteHandler(getProfileController));
+
+export { profileRoutes };
+```
+
+### Example: registering route handlers (no context)
+
+```ts
+import { Router } from "express";
+import { getHealthController } from "./get/controller";
+
+const healthRoutes = Router();
+healthRoutes.get("/health", getHealthController);
+
+export { healthRoutes };
+```
 
 ## Example directory structure
 
@@ -39,43 +91,30 @@ src/routes/
       delete/      → DELETE /users/:id
 ```
 
-### Route index pattern
-
-Route `index.ts` creates a Router and registers each method’s controller. Example (see `src/routes/health`):
-
-```ts
-import { Router } from "express";
-import { GET } from "./get/controller";
-
-const healthRoutes = Router();
-healthRoutes.get("/health", GET);
-export { healthRoutes };
-```
-
 ## Response shape
 
-- All route responses must use **`TResponseBody<TData, TErrorCode>`** from `@/types/response-body`. Controllers send `res.json(body)` where `body` conforms to this type (success: `data`; validation failure: `validationErrors`; error: `error`).
-- **Always define the response body explicitly**: assign it to a variable typed as **`TResponseBody<TResponseData, TResponseErrorCode>`**, then return `res.json(responseBody)`.
-- **Status codes**: Define HTTP status codes in **`@/constants/status-codes`** and use them everywhere a status is set (e.g. `res.status(STATUS_CODES.OK).json(responseBody)`). Do not use numeric literals; import and use **`STATUS_CODES`** from that file.
+- Use **`TResponseBody<TData, TErrorCode>`** from `@/types/response-body` for every route response. Controllers send `res.json(body)` where `body` conforms (success: `data`; validation: `validationErrors`; error: `error`).
+- **Type the response body explicitly**: assign it to a variable of type **`TResponseBody<TResponseData, TResponseErrorCode>`**, then `return res.json(responseBody)`.
+- Use **`STATUS_CODES`** from `@/constants/status-codes` whenever setting `res.status(...)`; do not use numeric literals.
 
 ## File responsibilities
 
-| File                | Responsibility                                                                                                                                                                     |
-| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `index.ts`          | At route root: create Router, define path(s), register each method’s controller; no business logic.                                                                                |
-| `controller.ts`     | Export the route handler; orchestrate validation → query/mutation → transformation → response; send response using `TResponseBody`; no heavy business logic (minimal wiring only). |
-| `interface.ts`      | Define all public schema types for the route.                                                                                                                                      |
-| `query.ts`          | Define Prisma get queries only; return raw Prisma result; no business logic.                                                                                                       |
-| `mutation.ts`       | Define Prisma post/put/patch/delete mutations; return raw result; no business logic; no get queries unless required by the mutation.                                               |
-| `transformation.ts` | Data transformations for route response only; no other business logic.                                                                                                             |
-| `utility.ts`        | Route-specific utility helpers only.                                                                                                                                               |
+| File                | Responsibility                                                                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `index.ts`          | Create Router, define path(s), register each method’s **route handler** (controller or wrapper); no business logic.                                    |
+| `controller.ts`     | Export the route handler; orchestrate validation → query/mutation → transformation → response; send response via `TResponseBody`; minimal wiring only. |
+| `interface.ts`      | Define all public schema types for the route.                                                                                                          |
+| `query.ts`          | Prisma get queries only; return raw result; no business logic.                                                                                         |
+| `mutation.ts`       | Prisma post/put/patch/delete only; return raw result; no business logic; no get queries unless required by the mutation.                               |
+| `transformation.ts` | Data transformations for route response only.                                                                                                          |
+| `utility.ts`        | Route-specific helpers only.                                                                                                                           |
 
 ## Controller
 
-- Handler name: method + resource + **`Controller`** (e.g. `getUsersController`, `postUserController`, `putUserController` for `users/{id}/put/`).
-- Handler signature: exactly two arguments — **`req`** (`Request`) and **`res`** (`Response`).
-- Handler **return type**: **`Promise<Response>`**. Return the result of the response send (e.g. `return res.json(responseBody)`) so the handler returns a `Promise<Response>` and matches the route-handler contract.
-- Send the response using an explicitly typed body: define **`responseBody`** as **`TResponseBody<TResponseData, TResponseErrorCode>`**, then `return res.json(responseBody)`.
+- **Naming**: method + resource + **`Controller`** (e.g. `getUsersController`, `postUserController`, `putUserController` for `users/{id}/put/`).
+- **Signature**: exactly two arguments — **`req`** (`Request`) and **`res`** (`Response`).
+- **Return type**: **`Promise<Response>`**. Return the result of the response send (e.g. `return res.json(responseBody)`).
+- **Response**: define **`responseBody`** as **`TResponseBody<TResponseData, TResponseErrorCode>`**, then `return res.json(responseBody)`.
 
 ### Response body example
 
@@ -105,10 +144,10 @@ return res.json(responseBody);
 
 ## Interface types
 
-- **Response data**: Prefix with method (`Get`|`Post`|`Put`|`Patch`|`Delete`), suffix with **`ResponseData`** (e.g. `TGetUsersResponseData`). This type is the first generic in **`TResponseBody<TData, TErrorCode>`**.
-- **Request data**: Prefix with method, suffix with **`RequestData`** (e.g. `TPostUserRequestData`).
-- **Error code type**: Suffix **`ResponseErrorCode`**; **always extend** **`TResponseErrorCode`** from `@/types/response-error-code` (e.g. `TGetUsersResponseErrorCode = TResponseErrorCode` or `TPostUserResponseErrorCode = TResponseErrorCode | "USER_EXISTS"`). This type is the second generic in **`TResponseBody`**. Do not define a response error code type that does not extend **`TResponseErrorCode`**.
-- **List responses**: Use **`TModelCollection`** from `@/types/model-collection` for consistent list schema.
+- **Response data**: prefix with method (`Get`|`Post`|`Put`|`Patch`|`Delete`), suffix **`ResponseData`** (e.g. `TGetUsersResponseData`). This is the first generic in **`TResponseBody<TData, TErrorCode>`**.
+- **Request data**: prefix with method, suffix **`RequestData`** (e.g. `TPostUserRequestData`).
+- **Error codes**: suffix **`ResponseErrorCode`**; **always extend** **`TResponseErrorCode`** from `@/types/response-error-code` (e.g. `TGetUsersResponseErrorCode = TResponseErrorCode` or `TPostUserResponseErrorCode = TResponseErrorCode | "USER_EXISTS"`). This is the second generic in **`TResponseBody`**. Do not define a response error code type that does not extend **`TResponseErrorCode`**.
+- **List responses**: use **`TModelCollection`** from `@/types/model-collection` for a consistent list schema.
 
 ### Interface example
 
@@ -141,19 +180,19 @@ export type TPostUserResponseErrorCode = TResponseErrorCode | "USER_EXISTS";
 
 ## Query & mutation
 
-- **query.ts**: Prefix **`get`**, suffix **`Query`** (e.g. `getUsersQuery`, `getRoleQuery`). No mutations.
-- **mutation.ts**: Prefix **`post`**|**`put`**|**`patch`**|**`delete`**, suffix **`Mutation`** (e.g. `postUserMutation`, `putRoleMutation`).
-- **No logic in query/mutation files**: **query.ts** and **mutation.ts** must only perform the Prisma call and return its result. Do not add conditionals, validation, or business rules (e.g. do not check expiry and return `undefined`; do that in the controller or a shared utility). The controller interprets the result (e.g. “no row” or “expired”) and chooses the response.
+- **query.ts**: prefix **`get`**, suffix **`Query`** (e.g. `getUsersQuery`, `getRoleQuery`). No mutations.
+- **mutation.ts**: prefix **`post`**|**`put`**|**`patch`**|**`delete`**, suffix **`Mutation`** (e.g. `postUserMutation`, `putRoleMutation`).
+- **No logic in query/mutation**: these files only perform the Prisma call and return its result. Do not add conditionals, validation, or business rules (e.g. do not check expiry and return `undefined` in the query; do that in the controller or a shared utility). The controller interprets the result and chooses the response.
 
 ## Return values
 
 - Prefer **`undefined`** over **`null`** for optional or absent values in controller response data and in transformation results.
-- In **query.ts** and **mutation.ts**, return **`undefined`** instead of **`null`** when a value is absent (e.g. no row found).
-- In **interface.ts** types, use **`undefined`** for optional or absent properties (e.g. `field?: T` or `field: T | undefined`) instead of **`null`**.
+- In **query.ts** and **mutation.ts**, return **`undefined`** when a value is absent (e.g. no row found).
+- In **interface.ts** types, use **`undefined`** for optional or absent properties (e.g. `field?: T` or `field: T | undefined`), not **`null`**.
 
 ## Timestamps
 
-- All timestamp values in route **interfaces** (request/response types), **responses**, and **request payloads** must be in **UTC milliseconds** (number). Define, return, and accept only UTC ms; convert to/from `Date` or other formats at the boundary (e.g. in controller or transformation) when needed.
+- All timestamp values in route **interfaces**, **responses**, and **request payloads** must be in **UTC milliseconds** (number). Use UTC ms only; convert to/from `Date` or other formats at the boundary (e.g. in controller or transformation) when needed.
 
 ## Transformation
 
@@ -161,5 +200,4 @@ export type TPostUserResponseErrorCode = TResponseErrorCode | "USER_EXISTS";
 
 ## Scope
 
-- Keep all route members **route-specific**.
-- Do not share code between routes; move common logic to shared modules outside **`src/routes`**.
+- Keep all route members **route-specific**. Do not share code between routes; move common logic to shared modules outside **`src/routes`**.
