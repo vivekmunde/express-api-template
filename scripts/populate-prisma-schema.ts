@@ -1,9 +1,8 @@
 /**
- * Aggregates multiple Prisma schema files from `schema/` into a single
- * `prisma/schema.prisma` file. Reads all `.prisma` files in order (base first,
- * then alphabetically), concatenates their contents with double newlines, and
- * writes the result to the target path. Ensures the target directory exists
- * before writing.
+ * Populates `prisma/schema.prisma` by merging Prisma schema fragments from
+ * `schema/`. Reads all `.prisma` files (base first, then alphabetically),
+ * concatenates their contents with double newlines, and writes the result to
+ * the target path. Creates the target directory if it does not exist.
  */
 
 import {
@@ -17,19 +16,17 @@ import { dirname, join } from "path";
 
 /** Directory containing the source Prisma schema fragments (e.g. schema/). */
 const PRISMA_SCHEMA_DIR = join(__dirname, "../schema");
-/** Filename of the base schema (generator + datasource); must be listed first. */
+/** Base schema file (generator + datasource); included first in the merge. */
 const BASE_SCHEMA_FILE = "base.prisma";
-/** Output path for the merged schema used by Prisma CLI (e.g. prisma/schema.prisma). */
+/** Output path for the merged schema used by the Prisma CLI. */
 const TARGET_SCHEMA_PATH = join(__dirname, "../prisma/schema.prisma");
 
 try {
-  // Ensure target directory exists so writeFileSync does not fail
   const targetDir = dirname(TARGET_SCHEMA_PATH);
   if (!existsSync(targetDir)) {
     mkdirSync(targetDir, { recursive: true });
   }
 
-  // Collect .prisma files and sort so base schema is first, then alphabetical
   const schemaFiles = readdirSync(PRISMA_SCHEMA_DIR)
     .filter((file) => file.endsWith(".prisma"))
     .sort((a, b) => {
@@ -44,7 +41,6 @@ try {
     );
   }
 
-  // Read each file (trimmed) and join with double newlines
   const mergedSchema = schemaFiles
     .map((file) => {
       const content = readFileSync(

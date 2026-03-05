@@ -44,7 +44,7 @@ The server listens on the configured `PORT`. Root and health endpoints are avail
 The app uses **Prisma** with **MongoDB**.
 
 - **Schema source**: Schema is split into fragments under `schema/`. `schema/base.prisma` defines the generator and datasource; other `.prisma` files add models and enums.
-- **Generated schema**: The single file used by Prisma CLI is `prisma/schema.prisma`. It is produced by aggregating all `.prisma` files from `schema/` (base first, then alphabetically). Do not edit `prisma/schema.prisma` by hand; run the aggregate script or `prisma:generate` instead.
+- **Generated schema**: The single file used by Prisma CLI is `prisma/schema.prisma`. It is produced by merging all `.prisma` files from `schema/` (base first, then alphabetically). Do not edit `prisma/schema.prisma` by hand; run the populate script or `prisma:generate` instead.
 - **Client**: After schema changes, run `yarn prisma:generate` to regenerate the Prisma client. The `dev` and `build` scripts run this automatically.
 - **Database**: Set `DATABASE_URL` in `.env`. Use `yarn prisma:push` to push the current schema to the database (no migrations with MongoDB).
 
@@ -52,21 +52,22 @@ The app uses **Prisma** with **MongoDB**.
 
 Scripts under `scripts/` are used at startup and by npm scripts:
 
-| Script                               | Purpose                                                                                                                                     |
-| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `scripts/aggregate-prisma-schema.ts` | Merges all `.prisma` files from `schema/` into `prisma/schema.prisma`. Runs as part of `prisma:generate` and thus before `dev` and `build`. |
+| Script                              | Purpose                                                                                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scripts/populate-prisma-schema.ts` | Merges all `.prisma` files from `schema/` into `prisma/schema.prisma`. Runs as part of `prisma:generate` and thus before `dev` and `build`. |
 
 ## Run scripts (package.json)
 
-| Command                 | Description                                                                             |
-| ----------------------- | --------------------------------------------------------------------------------------- |
-| `yarn dev`              | Start dev server with hot reload (runs `prisma:generate` then `tsx watch src/index.ts`) |
-| `yarn build`            | Run `prisma:generate`, lint, compile TypeScript to `dist/`, resolve path aliases        |
-| `yarn start`            | Run compiled app (`node dist/index.js`)                                                 |
-| `yarn typecheck`        | Type-check without emitting                                                             |
-| `yarn lint`             | Run ESLint on `src/`                                                                    |
-| `yarn format`           | Format with Prettier                                                                    |
-| `yarn format:check`     | Check formatting only                                                                   |
-| `yarn prisma:aggregate` | Aggregate `schema/*.prisma` into `prisma/schema.prisma`                                 |
-| `yarn prisma:generate`  | Aggregate schema then run `prisma generate`                                             |
-| `yarn prisma:push`      | Push schema to the database (`prisma db push`)                                          |
+| Command                | Description                                                                             |
+| ---------------------- | --------------------------------------------------------------------------------------- |
+| `yarn dev`             | Start dev server with hot reload (runs `prisma:generate` then `tsx watch src/index.ts`) |
+| `yarn build`           | Run `prisma:generate`, lint, compile TypeScript to `dist/`, resolve path aliases        |
+| `yarn start`           | Run compiled app (`node dist/index.js`)                                                 |
+| `yarn typecheck`       | Type-check without emitting                                                             |
+| `yarn lint`            | Run ESLint                                                                              |
+| `yarn format`          | Format with Prettier                                                                    |
+| `yarn format:check`    | Check formatting only                                                                   |
+| `yarn test`            | Run tests (Vitest)                                                                      |
+| `yarn test:coverage`   | Run tests with coverage                                                                 |
+| `yarn prisma:generate` | Populate schema from `schema/` then run `prisma generate`                               |
+| `yarn prisma:push`     | Push schema to the database (`prisma db push`)                                          |

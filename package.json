@@ -17,8 +17,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "prepare": "husky",
-    "prisma:aggregate": "tsx scripts/aggregate-prisma-schema.ts",
-    "prisma:generate": "npm run prisma:aggregate && prisma generate",
+    "prisma:generate": "tsx scripts/populate-prisma-schema.ts && prisma generate",
     "prisma:push": "prisma db push"
   },
   "keywords": [],
