@@ -5,6 +5,7 @@
 import { corsOptions } from "@/cors-options";
 import { PORT } from "@/env";
 import { initializeI18n } from "@/initialize-i18n";
+import { corsErrorHandlerMiddleware } from "@/middlewares/cors-error-handler-middleware";
 import { errorHandlerMiddleware } from "@/middlewares/error-handler-middleware";
 import { routes } from "@/routes";
 import cookieParser from "cookie-parser";
@@ -22,6 +23,8 @@ app.use(cookieParser());
 app.use(express.json());
 // i18n: detect language and attach t() to req
 app.use(i18nextHttpMiddleware.handle(initializeI18n()));
+// CORS error handler middleware
+app.use(corsErrorHandlerMiddleware);
 
 routes(app);
 
