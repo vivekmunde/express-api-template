@@ -1,24 +1,7 @@
 import { STATUS_CODES } from "@/constants/status-codes";
+import { prisma } from "@/prisma";
 import { TResponseBody } from "@/types/response-body";
 import { NextFunction, Request, Response } from "express";
-
-/**
- * Returns the request's query string per URL Standard (includes leading "?" or "").
- * Uses the URL API for consistent parsing; falls back to string slice if URL fails.
- *
- * @param req - Express request object
- * @returns The search string (e.g. "?foo=bar") or undefined when no query
- */
-function getRequestSearch(req: Request): string | undefined {
-  try {
-    const base = `http://${req.get("host") ?? req.hostname}`;
-    const url = new URL(req.originalUrl, base);
-    return url.search;
-  } catch {
-    const idx = req.originalUrl.indexOf("?");
-    return idx === -1 ? undefined : req.originalUrl.slice(idx);
-  }
-}
 
 /**
  * Error handler middleware. Logs error details (status, message, stack, URL, body, method)
@@ -41,19 +24,20 @@ const errorHandlerMiddleware = async (
   try {
     const statusCode = err.statusCode ?? STATUS_CODES.INTERNAL_SERVER_ERROR;
 
-    console.error("Error while logging error:", {
+    await prisma.apiErrorLog.create({
       data: {
-        statusCode,
+        service: "AUTH",
+        statusCode: statusCode,
         errorMessage: err.message ?? "Internal Server Error",
         errorStack: err.stack,
-        // userId: req.sessionUser?.id,
-        url: req.url,
-        urlDomain: req.hostname,
-        urlPath: req.path,
-        urlSearch: getRequestSearch(req),
+        requestUrl: req.url.toString(),
+        requestUrlHostname: req.hostname,
+        requestUrlPath: req.path,
+        requestUrlSearch: new URL(req.url.toString()).search.slice(1),
         requestBody: JSON.stringify(req?.body),
         requestMethod: req?.method,
-        // createdBy: req.sessionUser?.id,
+        userId: req.sessionUser?.id,
+        createdBy: req.sessionUser?.id,
       },
     });
 

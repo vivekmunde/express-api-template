@@ -1,0 +1,26 @@
+enum EService {
+  AUTH
+}
+
+model ApiErrorLog {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  service            EService
+  statusCode         Int?
+  errorMessage       String?
+  errorStack         String?
+  requestUrl         String?
+  requestUrlHostname String?
+  requestUrlPath     String?
+  requestUrlSearch   String?
+  requestBody        String?
+  requestMethod      String?
+  userId             String?
+  tenantId           String?
+  createdAt          DateTime @default(now())
+  createdBy          String?  @db.ObjectId
+
+  @@index([createdAt])
+  @@index([service])
+  @@index([userId])
+  @@index([tenantId])
+}
