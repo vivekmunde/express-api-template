@@ -21,12 +21,9 @@ const publicRouteHandler = (
   ) => Promise<Response>
 ) => {
   return routeHandler(async (req: Request, res: Response) => {
-    // ------------------------------------------------------------
-    // TODO: Add session user to request context when the auth middleware is in place (e.g. req.sessionUser).
-    // ------------------------------------------------------------
-    // const sessionUser = req.sessionUser;
+    const sessionUser = req.sessionUser;
 
-    return fn(req, res, { sessionUser: undefined });
+    return fn(req, res, { sessionUser });
   });
 };
 
