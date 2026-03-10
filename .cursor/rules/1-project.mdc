@@ -55,7 +55,7 @@ alwaysApply: true
 
 - Prefix type aliases with **`T`** (e.g. `TUser`, `TConfig`).
 - Suffix function argument types with **`Args`** (e.g. `TCreateUserArgs`, `TLoginArgs`).
-- Define method types separately when possible: `type TTransformUsers = (users: User): TGetUser[]`.
+- Define method types separately when possible: `type TTransformUsers = (users: User[]): TUserGetRequestDataItem[]`.
 - Methods must have an explicit return type.
 - Inline method types only when a separate type is not practical.
 
@@ -65,6 +65,10 @@ alwaysApply: true
 - Document every argument and every member of types/argument objects.
 - Explain what a function or method does without giving internal implementation details.
 - Check spelling in identifiers, comments, docs, and tests.
+
+### Comments
+
+- **Simple and isolated**: Keep comments self-contained. Do not describe implementation details or reference other types, methods, or files (e.g. avoid "used in X", "see type Y", "used by Z").
 
 ## Environment
 
