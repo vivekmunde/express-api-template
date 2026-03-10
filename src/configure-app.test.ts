@@ -60,9 +60,7 @@ vi.mock("express", () => ({
 }));
 
 vi.mock("i18next-http-middleware", () => ({
-  default: {
-    handle: mockI18nHandle,
-  },
+  handle: mockI18nHandle,
 }));
 
 describe("configureApp", () => {

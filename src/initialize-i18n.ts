@@ -1,7 +1,7 @@
 import i18next from "i18next";
 import i18nextFsBackend from "i18next-fs-backend";
 import { LanguageDetector } from "i18next-http-middleware";
-import path from "path";
+import path from "node:path";
 
 /**
  * Initializes i18next with file-based backend and HTTP middleware detection.
@@ -19,7 +19,12 @@ const initializeI18n = () => {
       preload: ["en"],
       ns: ["word"],
       backend: {
-        loadPath: path.join(__dirname, "locales", "{{lng}}", "{{ns}}.json"),
+        loadPath: path.join(
+          import.meta.dirname,
+          "locales",
+          "{{lng}}",
+          "{{ns}}.json"
+        ),
       },
       detection: {
         order: ["querystring", "cookie", "header"],

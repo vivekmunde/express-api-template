@@ -1,10 +1,7 @@
 import { STATUS_CODES } from "@/constants/status-codes";
-import { TResponseBody } from "@/types/response-body";
+import { TResponseBody } from "@/types/response";
 import { Request, Response } from "express";
-import {
-  TGetHealthResponseData,
-  TGetHealthResponseErrorCode,
-} from "./interface";
+import { TGetHealthResponseData, TGetHealthResponseErrorCode } from "./schema";
 
 /**
  * Handles GET /health. Responds with { data: { status } } using TResponseBody.

@@ -12,14 +12,14 @@ import {
   readFileSync,
   writeFileSync,
 } from "fs";
-import { dirname, join } from "path";
+import { dirname, join } from "node:path";
 
 /** Directory containing the source Prisma schema fragments (e.g. schema/). */
-const PRISMA_SCHEMA_DIR = join(__dirname, "../schema");
+const PRISMA_SCHEMA_DIR = join(import.meta.dirname, "../schema");
 /** Base schema file (generator + datasource); included first in the merge. */
 const BASE_SCHEMA_FILE = "base.prisma";
 /** Output path for the merged schema used by the Prisma CLI. */
-const TARGET_SCHEMA_PATH = join(__dirname, "../prisma/schema.prisma");
+const TARGET_SCHEMA_PATH = join(import.meta.dirname, "../prisma/schema.prisma");
 
 try {
   const targetDir = dirname(TARGET_SCHEMA_PATH);

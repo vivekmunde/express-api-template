@@ -1,6 +1,6 @@
 import { STATUS_CODES } from "@/constants/status-codes";
 import { prisma } from "@/prisma";
-import { TResponseBody } from "@/types/response-body";
+import { TResponseBody } from "@/types/response";
 import { NextFunction, Request, Response } from "express";
 
 /**

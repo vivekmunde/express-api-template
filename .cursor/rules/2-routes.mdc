@@ -78,11 +78,14 @@ src/routes/
     index.ts       → defines GET /users, POST /users, etc.
     get/
       controller.ts
-      interface.ts
+      schema.ts
+      validation.ts
       query.ts
       ...
     post/
       controller.ts
+      schema.ts
+      validation.ts
       mutation.ts
       ...
     {id}/
@@ -103,7 +106,8 @@ src/routes/
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `index.ts`          | Create Router, define path(s), register each method’s **route handler** (controller or wrapper); no business logic.                                    |
 | `controller.ts`     | Export the route handler; orchestrate validation → query/mutation → transformation → response; send response via `TResponseBody`; minimal wiring only. |
-| `interface.ts`      | Define all public schema types for the route.                                                                                                          |
+| `schema.ts`         | Define all public schema types for the route (request/response shapes, error codes).                                                                   |
+| `validation.ts`     | Schema validation using **Zod**: validate request body, query, or params against schema types; return validation result or errors.                     |
 | `query.ts`          | Prisma get queries only; return raw result; no business logic.                                                                                         |
 | `mutation.ts`       | Prisma post/put/patch/delete only; return raw result; no business logic; no get queries unless required by the mutation.                               |
 | `transformation.ts` | Data transformations for route response only.                                                                                                          |
@@ -142,14 +146,14 @@ const responseBody: TResponseBody<TResponseData, TResponseErrorCode> = {
 return res.json(responseBody);
 ```
 
-## Interface types
+## Schema types
 
 - **Response data**: prefix with method (`Get`|`Post`|`Put`|`Patch`|`Delete`), suffix **`ResponseData`** (e.g. `TGetUsersResponseData`). This is the first generic in **`TResponseBody<TData, TErrorCode>`**.
 - **Request data**: prefix with method, suffix **`RequestData`** (e.g. `TPostUserRequestData`).
 - **Error codes**: suffix **`ResponseErrorCode`**; **always extend** **`TResponseErrorCode`** from `@/types/response-error-code` (e.g. `TGetUsersResponseErrorCode = TResponseErrorCode` or `TPostUserResponseErrorCode = TResponseErrorCode | "USER_EXISTS"`). This is the second generic in **`TResponseBody`**. Do not define a response error code type that does not extend **`TResponseErrorCode`**.
 - **List responses**: use **`TModelCollection`** from `@/types/model-collection` for a consistent list schema.
 
-### Interface example
+### Schema example
 
 ```ts
 import { TResponseErrorCode } from "@/types/response-error-code";
@@ -178,6 +182,14 @@ export type TPostUserResponseData = {
 export type TPostUserResponseErrorCode = TResponseErrorCode | "USER_EXISTS";
 ```
 
+## Validation
+
+- Use **`validation.ts`** for schema validation of request data (body, query, params). The controller calls the validator before query/mutation.
+- **Use Zod**: define schemas with **Zod** (e.g. `z.object()`, `z.string()`) and use `.safeParse()` or `.parse()`; do not use other validation libraries in route validators.
+- **Naming**: prefix with method + resource, suffix **`Validation`** or **`Validator`** (e.g. `postUserRequestValidation`, `getUsersQueryValidation`). Export a function that accepts raw input and returns a validation result (e.g. parsed data or validation errors).
+- **Single responsibility**: validate shape and types only; do not run business rules or DB checks. Return **validation errors** in the format expected by **`TResponseBody`** (e.g. `validationErrors`) so the controller can set status and response body.
+- **Align with schema types**: validation must align with **`schema.ts`** (request types). Prefer inferring TypeScript types from Zod schemas (e.g. `z.infer<typeof schema>`) where it keeps schema and types in sync.
+
 ## Query & mutation
 
 - **query.ts**: prefix **`get`**, suffix **`Query`** (e.g. `getUsersQuery`, `getRoleQuery`). No mutations.
@@ -188,11 +200,11 @@ export type TPostUserResponseErrorCode = TResponseErrorCode | "USER_EXISTS";
 
 - Prefer **`undefined`** over **`null`** for optional or absent values in controller response data and in transformation results.
 - In **query.ts** and **mutation.ts**, return **`undefined`** when a value is absent (e.g. no row found).
-- In **interface.ts** types, use **`undefined`** for optional or absent properties (e.g. `field?: T` or `field: T | undefined`), not **`null`**.
+- In **schema.ts** types, use **`undefined`** for optional or absent properties (e.g. `field?: T` or `field: T | undefined`), not **`null`**.
 
 ## Timestamps
 
-- All timestamp values in route **interfaces**, **responses**, and **request payloads** must be in **UTC milliseconds** (number). Use UTC ms only; convert to/from `Date` or other formats at the boundary (e.g. in controller or transformation) when needed.
+- All timestamp values in route **schemas**, **responses**, and **request payloads** must be in **UTC milliseconds** (number). Use UTC ms only; convert to/from `Date` or other formats at the boundary (e.g. in controller or transformation) when needed.
 
 ## Transformation
 

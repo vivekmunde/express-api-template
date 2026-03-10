@@ -1,4 +1,4 @@
-import { TResponseErrorCode } from "@/types/response-error-code";
+import { TResponseErrorCode } from "@/types/response";
 
 /** Health check success payload. */
 export type TGetHealthResponseData = {

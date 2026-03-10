@@ -10,7 +10,7 @@ import { routes } from "@/routes";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { type Express } from "express";
-import i18nextHttpMiddleware from "i18next-http-middleware";
+import { handle as i18nextHttpMiddlewareHandle } from "i18next-http-middleware";
 
 /**
  * Configures the given Express application with middlewares and routes.
@@ -25,7 +25,7 @@ const configureApp = (app: Express): Express => {
   // Parse JSON request bodies
   app.use(express.json());
   // i18n: detect language and attach t() to req
-  app.use(i18nextHttpMiddleware.handle(initializeI18n()));
+  app.use(i18nextHttpMiddlewareHandle(initializeI18n()));
   // CORS error handler middleware
   app.use(corsErrorHandlerMiddleware);
 
